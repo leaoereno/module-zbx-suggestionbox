@@ -1,0 +1,33 @@
+{
+    "manifest_version": 2,
+    "id": "zbx-suggestion-box",
+    "name": "Suggestion Box",
+    "version": "1.0.0",
+    "namespace": "SuggestionBox",
+    "author": "Rafael Leão — NOC Claro Empresas / Embratel",
+    "description": "Caixa de Sugestões: usuários podem criar e votar em ideias para desenvolvimento.",
+    "url": "https://github.com/leaoereno/module-zbx-suggestion-box",
+    "icon": "",
+    "actions": {
+        "suggestion.box.list": {
+            "class": "SuggestionBoxList",
+            "layout": "layout.htmlpage"
+        },
+        "suggestion.box.save": {
+            "class": "SuggestionBoxSave",
+            "layout": "layout.json"
+        },
+        "suggestion.box.vote": {
+            "class": "SuggestionBoxVote",
+            "layout": "layout.json"
+        },
+        "suggestion.box.delete": {
+            "class": "SuggestionBoxDelete",
+            "layout": "layout.json"
+        },
+        "suggestion.box.report": {
+            "class": "SuggestionBoxReport",
+            "layout": "layout.htmlpage"
+        }
+    }
+}
