@@ -11,23 +11,29 @@
     "actions": {
         "suggestion.box.list": {
             "class": "SuggestionBoxList",
-            "layout": "layout.htmlpage"
+            "layout": "layout.htmlpage",
+            "view": "suggestion.box.list"
         },
         "suggestion.box.save": {
             "class": "SuggestionBoxSave",
-            "layout": "layout.json"
+            "layout": "layout.json",
+            "view": "suggestion.box.save"
         },
         "suggestion.box.vote": {
             "class": "SuggestionBoxVote",
-            "layout": "layout.json"
+            "layout": "layout.json",
+            "view": "suggestion.box.vote"
         },
         "suggestion.box.delete": {
             "class": "SuggestionBoxDelete",
-            "layout": "layout.json"
+            "layout": "layout.json",
+            "view": "suggestion.box.delete"
         },
         "suggestion.box.report": {
             "class": "SuggestionBoxReport",
-            "layout": "layout.htmlpage"
+            "layout": "layout.htmlpage",
+            "view": "suggestion.box.report"
         }
-    }
+    },
+    "type": "module"
 }

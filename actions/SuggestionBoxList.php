@@ -1,13 +1,9 @@
 <?php
-/**
- * Action: suggestion.box.list
- * Página principal — lista sugestões com busca, filtro por tag e votação.
- */
-
 namespace Modules\SuggestionBox\Actions;
 
-use CController;
-use CControllerResponseData;
+use CController,
+    CControllerResponseData,
+    CWebUser;
 
 class SuggestionBoxList extends CController {
 
@@ -25,55 +21,46 @@ class SuggestionBoxList extends CController {
     }
 
     protected function checkPermissions(): bool {
-        // Qualquer usuário logado
-        return $this->getUserId() > 0;
+        return (int) CWebUser::$data['userid'] > 0;
     }
 
     protected function doAction(): void {
-        $userid  = (int) $this->getUserId();
+        $userid  = (int) CWebUser::$data['userid'];
         $search  = trim($this->getInput('search', ''));
         $tag     = trim($this->getInput('tag', ''));
         $sort    = $this->getInput('sort', 'votes');
 
-        // Buscar tipo do usuário atual
         $currentUser = \DBfetch(\DBselect(
-            'SELECT u.userid, u.name, u.surname, u.alias, u.type' .
-            ' FROM users u' .
-            ' WHERE u.userid=' . $userid
+            'SELECT u.userid, u.name, u.surname, u.username, r.type' .
+            ' FROM users u JOIN role r ON r.roleid=u.roleid WHERE u.userid=' . $userid
         ));
         $isSuperAdmin = $currentUser && (int)$currentUser['type'] === 3;
 
-        // Construir query de sugestões com contagem de votos
         $where = ['1=1'];
 
         if ($search !== '') {
-            $safe = \DBquote('%' . $search . '%', true);
-            // remove as aspas externas que DBquote adiciona para usar em LIKE manual
-            $safeLike = "LOWER(s.title) LIKE LOWER(" . \DBquote('%' . $search . '%') . ")
-                      OR LOWER(s.description) LIKE LOWER(" . \DBquote('%' . $search . '%') . ")";
-            $where[] = '(' . $safeLike . ')';
+            $where[] = '(LOWER(s.title) LIKE LOWER(' . zbx_dbstr('%' . $search . '%') . ')' .
+                       ' OR LOWER(s.description) LIKE LOWER(' . zbx_dbstr('%' . $search . '%') . '))';
         }
 
         if ($tag !== '') {
-            $where[] = 'EXISTS (
-                SELECT 1 FROM zbx_suggestion_tags st
-                WHERE st.suggestionid = s.suggestionid
-                AND LOWER(st.tag) = LOWER(' . \DBquote($tag) . ')
-            )';
+            $where[] = 'EXISTS (SELECT 1 FROM zbx_suggestion_tags st' .
+                       ' WHERE st.suggestionid = s.suggestionid' .
+                       ' AND LOWER(st.tag) = LOWER(' . zbx_dbstr($tag) . '))';
         }
 
         $orderBy = $sort === 'newest' ? 's.created_at DESC' : 'vote_count DESC, s.created_at DESC';
 
         $sql =
             'SELECT s.suggestionid, s.userid, s.title, s.description, s.created_at,' .
-            '       u.name, u.surname, u.alias,' .
+            '       u.name, u.surname, u.username,' .
             '       COUNT(DISTINCT v.voteid) AS vote_count' .
             ' FROM zbx_suggestions s' .
             ' JOIN users u ON u.userid = s.userid' .
             ' LEFT JOIN zbx_suggestion_votes v ON v.suggestionid = s.suggestionid' .
             ' WHERE ' . implode(' AND ', $where) .
             ' GROUP BY s.suggestionid, s.userid, s.title, s.description, s.created_at,' .
-            '          u.name, u.surname, u.alias' .
+            '          u.name, u.surname, u.username' .
             ' ORDER BY ' . $orderBy;
 
         $res = \DBselect($sql);
@@ -82,11 +69,9 @@ class SuggestionBoxList extends CController {
             $suggestions[] = $row;
         }
 
-        // Para cada sugestão: buscar tags e verificar se o usuário atual já votou
         foreach ($suggestions as &$sug) {
             $sid = (int)$sug['suggestionid'];
 
-            // Tags
             $tagRes = \DBselect(
                 'SELECT tag FROM zbx_suggestion_tags WHERE suggestionid=' . $sid . ' ORDER BY tag'
             );
@@ -95,7 +80,6 @@ class SuggestionBoxList extends CController {
                 $sug['tags'][] = $t['tag'];
             }
 
-            // Usuário já votou?
             $voted = \DBfetch(\DBselect(
                 'SELECT voteid FROM zbx_suggestion_votes' .
                 ' WHERE suggestionid=' . $sid . ' AND userid=' . $userid
@@ -104,7 +88,6 @@ class SuggestionBoxList extends CController {
         }
         unset($sug);
 
-        // Todas as tags existentes para o filtro rápido
         $tagListRes = \DBselect(
             'SELECT DISTINCT tag FROM zbx_suggestion_tags ORDER BY tag'
         );

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /**
  * View: suggestion.box.list.php
  * Página principal do Suggestion Box.
@@ -13,7 +13,6 @@ $currentUser  = $data['currentUser']  ?? [];
 $isSuperAdmin = $data['isSuperAdmin'] ?? false;
 $currentUserId = (int)($currentUser['userid'] ?? 0);
 ?>
-
 <style>
 /* ========================================================
    SUGGESTION BOX — Design System
@@ -137,7 +136,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
 }
 .sb-search {
     width: 100%;
-    padding: 9px 12px 9px 38px;
+    padding: 9px 12px 9px 44px !important;
     border: 1px solid var(--sb-border);
     border-radius: var(--sb-radius-sm);
     font-size: 14px;
@@ -151,7 +150,9 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
 .sb-sort-wrap { display: flex; align-items: center; gap: 8px; }
 .sb-sort-wrap label { font-size: 13px; color: var(--sb-muted); white-space: nowrap; }
 .sb-sort-select {
-    padding: 8px 12px;
+    padding: 8px 12px !important;
+    line-height: normal !important;
+    height: auto !important;
     border: 1px solid var(--sb-border);
     border-radius: var(--sb-radius-sm);
     font-size: 13px;
@@ -159,6 +160,8 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     background: #fff;
     cursor: pointer;
     outline: none;
+    text-align: center !important;
+    text-align-last: center !important;
 }
 .sb-sort-select:focus { border-color: var(--sb-primary); }
 
@@ -212,7 +215,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
 
 .sb-empty {
     grid-column: 1/-1;
-    text-align: center;
+    text-align: center !important;
     padding: 64px 20px;
     color: var(--sb-muted);
 }
@@ -340,7 +343,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     font-weight: 800;
     color: var(--sb-primary);
     min-width: 32px;
-    text-align: center;
+    text-align: center !important;
     line-height: 1;
 }
 .sb-vote-label {
@@ -450,21 +453,27 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     background: #f9fafb;
     border-top: 1px solid var(--sb-border);
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: center;
     gap: 10px;
 }
 .sb-btn-cancel {
-    padding: 9px 18px;
-    border: 1px solid var(--sb-border);
-    border-radius: var(--sb-radius-sm);
-    background: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    color: var(--sb-text);
-    font-weight: 500;
-    transition: background var(--sb-transition);
+    padding: 9px 18px !important;
+    border: 1px solid var(--sb-border) !important;
+    border-radius: var(--sb-radius-sm) !important;
+    background: #fff !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    color: var(--sb-text) !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    height: auto !important;
+    line-height: normal !important;
+    margin: 0 !important;
+    width: auto !important;
 }
-.sb-btn-cancel:hover { background: #f0f0f0; }
+.sb-btn-cancel:hover { background: #f0f0f0 !important; }
 .sb-btn-submit {
     padding: 9px 22px;
     background: var(--sb-primary);
@@ -563,7 +572,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
         </div>
         <?php if ($isSuperAdmin): ?>
         <div class="sb-stat">
-            <a href="suggestion.box.report" style="color:var(--sb-primary);font-weight:600;text-decoration:none;">
+            <a href="zabbix.php?action=suggestion.box.report" style="color:var(--sb-primary);font-weight:600;text-decoration:none;">
                 📊 Ver Relatório Completo →
             </a>
         </div>
@@ -621,10 +630,10 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
         <?php foreach ($suggestions as $sug): ?>
         <?php
             $sid    = (int)$sug['suggestionid'];
-            $author = htmlspecialchars(trim($sug['name'] . ' ' . $sug['surname']) ?: $sug['alias']);
-            $initials = strtoupper(mb_substr($sug['name'] ?? $sug['alias'], 0, 1) . mb_substr($sug['surname'] ?? '', 0, 1));
+            $author = htmlspecialchars(trim($sug['name'] . ' ' . $sug['surname']) ?: $sug['username']);
+            $initials = strtoupper(mb_substr($sug['name'] ?? $sug['username'], 0, 1) . mb_substr($sug['surname'] ?? '', 0, 1));
             $isOwner = (int)$sug['userid'] === $currentUserId;
-            $canDelete = $isOwner || $isSuperAdmin;
+            $canDelete = $isSuperAdmin;
             $voteCount = (int)$sug['vote_count'];
             $userVoted = (bool)$sug['user_voted'];
             $date = date('d/m/Y', strtotime($sug['created_at']));
@@ -738,7 +747,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     }
 
     function sbReload(params) {
-        var base = 'suggestion.box.list';
+        var base = 'zabbix.php?action=suggestion.box.list';
         var q = [];
         var s = (params && params.search !== undefined) ? params.search : currentSearch;
         var t = (params && params.tag    !== undefined) ? params.tag    : currentTag;
@@ -746,7 +755,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
         if (s) q.push('search=' + encodeURIComponent(s));
         if (t) q.push('tag='    + encodeURIComponent(t));
         if (o && o !== 'votes') q.push('sort=' + encodeURIComponent(o));
-        window.location.href = base + (q.length ? '?' + q.join('&') : '');
+        window.location.href = base + (q.length ? '&' + q.join('&') : '');
     }
 
     // ---- Modal ----
@@ -787,7 +796,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
                    '&description=' + encodeURIComponent(desc) +
                    '&tags='        + encodeURIComponent(tags);
 
-        fetch('suggestion.box.save', {
+        fetch('zabbix.php?action=suggestion.box.save', {
             method:  'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body:    body
@@ -813,7 +822,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
 
     // ---- Votar ----
     window.sbVote = function(sid) {
-        fetch('suggestion.box.vote', {
+        fetch('zabbix.php?action=suggestion.box.vote', {
             method:  'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body:    'suggestionid=' + sid
@@ -835,6 +844,12 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
                     sbToast('Voto removido.', 'success');
                 }
                 cnt.textContent = data.voteCount;
+                // Atualiza stats bar de votos totais
+                var allCounts = document.querySelectorAll('[id^="sb-vc-"]');
+                var total = 0;
+                allCounts.forEach(function(el) { total += parseInt(el.textContent) || 0; });
+                var statVotes = document.querySelectorAll('.sb-stat strong');
+                if (statVotes[1]) statVotes[1].textContent = total;
             } else {
                 sbToast(data.error || 'Erro ao votar.', 'error');
             }
@@ -846,7 +861,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     window.sbDelete = function(sid) {
         if (!confirm('Tem certeza que deseja excluir esta sugestão? Esta ação não pode ser desfeita.')) return;
 
-        fetch('suggestion.box.delete', {
+        fetch('zabbix.php?action=suggestion.box.delete', {
             method:  'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body:    'suggestionid=' + sid

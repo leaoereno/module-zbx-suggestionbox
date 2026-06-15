@@ -7,8 +7,8 @@
 namespace Modules\SuggestionBox\Actions;
 
 use CController;
-use CControllerResponseData;
-use CControllerResponseFatal;
+use CControllerResponseData,
+    CWebUser;
 
 class SuggestionBoxReport extends CController {
 
@@ -25,7 +25,7 @@ class SuggestionBoxReport extends CController {
 
     protected function checkPermissions(): bool {
         $user = \DBfetch(\DBselect(
-            'SELECT type FROM users WHERE userid=' . (int)$this->getUserId()
+            'SELECT r.type FROM users u JOIN role r ON r.roleid=u.roleid WHERE u.userid=' . (int)(int) CWebUser::$data['userid']
         ));
         return $user && (int)$user['type'] === 3;
     }
@@ -35,13 +35,13 @@ class SuggestionBoxReport extends CController {
 
         $sql =
             'SELECT s.suggestionid, s.title, s.description, s.created_at,' .
-            '       u.name, u.surname, u.alias,' .
+            '       u.name, u.surname, u.username,' .
             '       COUNT(DISTINCT v.voteid) AS vote_count' .
             ' FROM zbx_suggestions s' .
             ' JOIN users u ON u.userid = s.userid' .
             ' LEFT JOIN zbx_suggestion_votes v ON v.suggestionid = s.suggestionid' .
             ' GROUP BY s.suggestionid, s.title, s.description, s.created_at,' .
-            '          u.name, u.surname, u.alias' .
+            '          u.name, u.surname, u.username' .
             ' ORDER BY vote_count DESC, s.created_at DESC';
 
         $res = \DBselect($sql, $limit);

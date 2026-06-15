@@ -313,7 +313,7 @@ $total_votes       = (int)($data['total_votes']       ?? 0);
                 $rankIcon  = $rank === 1 ? '🥇' : ($rank === 2 ? '🥈' : ($rank === 3 ? '🥉' : $rank));
                 $voteCount = (int)$sug['vote_count'];
                 $barPct    = round($voteCount / $maxVotes * 100);
-                $author    = htmlspecialchars(trim($sug['name'] . ' ' . $sug['surname']) ?: $sug['alias']);
+                $author    = htmlspecialchars(trim($sug['name'] . ' ' . $sug['surname']) ?: $sug['username']);
                 $date      = date('d/m/Y', strtotime($sug['created_at']));
             ?>
             <tr>
@@ -371,7 +371,7 @@ $total_votes       = (int)($data['total_votes']       ?? 0);
                 $sug['description'] ?? '',
                 implode('; ', $sug['tags'] ?? []),
                 (int)$sug['vote_count'],
-                trim(($sug['name'] ?? '') . ' ' . ($sug['surname'] ?? '')) ?: ($sug['alias'] ?? ''),
+                trim(($sug['name'] ?? '') . ' ' . ($sug['surname'] ?? '')) ?: ($sug['username'] ?? ''),
                 date('d/m/Y', strtotime($sug['created_at'])),
             ];
         }, $suggestions)) ?>;
