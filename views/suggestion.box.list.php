@@ -282,6 +282,96 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transition: all 0.3s ease;
+}
+.sb-card.expandable .sb-card-top { cursor: pointer; }
+.sb-card-expand-hint {
+    font-size: 11px;
+    color: var(--sb-primary);
+    font-weight: 600;
+    margin-top: 4px;
+    display: none;
+    user-select: none;
+}
+.sb-card.is-clamped .sb-card-expand-hint { display: block; }
+
+/* Modal de visualização do card */
+.sb-view-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.sb-view-modal-overlay.open { display: flex; }
+.sb-view-modal {
+    background: var(--sb-card);
+    border-radius: var(--sb-radius);
+    width: 100%;
+    max-width: 620px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    animation: sb-slide-in .2s ease;
+    height: auto;
+}
+.sb-view-modal-header {
+    background: var(--sb-primary);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.sb-view-modal-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    flex: 1;
+}
+.sb-view-modal-body {
+    padding: 22px;
+}
+.sb-view-modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--sb-border);
+}
+.sb-view-modal-desc {
+    font-size: 14px;
+    color: var(--sb-text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    margin-bottom: 16px;
+    overflow: visible;
+}
+.sb-view-modal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+.sb-view-modal-footer {
+    padding: 14px 22px;
+    background: #f9fafb;
+    border-top: 1px solid var(--sb-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .sb-card-tags {
@@ -638,7 +728,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
             $userVoted = (bool)$sug['user_voted'];
             $date = date('d/m/Y', strtotime($sug['created_at']));
         ?>
-        <div class="sb-card" id="sb-card-<?= $sid ?>">
+        <div class="sb-card expandable" id="sb-card-<?= $sid ?>" onclick="sbViewCard(<?= $sid ?>, event)">
             <div class="sb-card-top">
                 <div class="sb-card-meta">
                     <div class="sb-avatar"><?= htmlspecialchars($initials ?: '?') ?></div>
@@ -647,7 +737,7 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
                 </div>
                 <div class="sb-card-title"><?= htmlspecialchars($sug['title']) ?></div>
                 <?php if (!empty($sug['description'])): ?>
-                <div class="sb-card-desc"><?= htmlspecialchars($sug['description']) ?></div>
+                <div class="sb-card-desc" id="sb-desc-<?= $sid ?>"><?= htmlspecialchars($sug['description']) ?></div>
                 <?php endif; ?>
                 <?php if (!empty($sug['tags'])): ?>
                 <div class="sb-card-tags">
@@ -693,6 +783,58 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     </div>
 
 </div><!-- #suggestion-box-wrap -->
+
+<!-- MODAL VISUALIZAÇÃO DE CARD -->
+<div class="sb-view-modal-overlay" id="sb-view-modal">
+    <div class="sb-view-modal" role="dialog" aria-modal="true">
+        <div class="sb-view-modal-header">
+            <h2 id="sb-view-title">Título</h2>
+            <button class="sb-modal-close" onclick="sbCloseViewModal()" aria-label="Fechar">✕</button>
+        </div>
+        <div class="sb-view-modal-body">
+            <div class="sb-view-modal-meta">
+                <div class="sb-avatar" id="sb-view-avatar">?</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;" id="sb-view-author"></div>
+                    <div style="font-size:11px;color:var(--sb-muted);" id="sb-view-date"></div>
+                </div>
+            </div>
+            <div class="sb-view-modal-desc" id="sb-view-desc"></div>
+            <div class="sb-view-modal-tags" id="sb-view-tags"></div>
+        </div>
+        <div class="sb-view-modal-footer">
+            <span style="font-size:13px;color:var(--sb-muted);">Votos:</span>
+            <strong style="font-size:18px;color:var(--sb-primary);" id="sb-view-votes">0</strong>
+            <button class="sb-btn-cancel" onclick="sbCloseViewModal()" style="margin-left:auto;">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VISUALIZAÇÃO DE CARD -->
+<div class="sb-view-modal-overlay" id="sb-view-modal">
+    <div class="sb-view-modal" role="dialog" aria-modal="true">
+        <div class="sb-view-modal-header">
+            <h2 id="sb-view-title">Título</h2>
+            <button class="sb-modal-close" onclick="sbCloseViewModal()" aria-label="Fechar">✕</button>
+        </div>
+        <div class="sb-view-modal-body">
+            <div class="sb-view-modal-meta">
+                <div class="sb-avatar" id="sb-view-avatar">?</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;" id="sb-view-author"></div>
+                    <div style="font-size:11px;color:var(--sb-muted);" id="sb-view-date"></div>
+                </div>
+            </div>
+            <div class="sb-view-modal-desc" id="sb-view-desc"></div>
+            <div class="sb-view-modal-tags" id="sb-view-tags"></div>
+        </div>
+        <div class="sb-view-modal-footer">
+            <span style="font-size:13px;color:var(--sb-muted);">Votos:</span>
+            <strong style="font-size:18px;color:var(--sb-primary);" id="sb-view-votes">0</strong>
+            <button class="sb-btn-cancel" onclick="sbCloseViewModal()" style="margin-left:auto;">Fechar</button>
+        </div>
+    </div>
+</div>
 
 <!-- MODAL NOVA SUGESTÃO -->
 <div class="sb-modal-overlay" id="sb-modal">
@@ -903,6 +1045,55 @@ $currentUserId = (int)($currentUser['userid'] ?? 0);
     document.getElementById('sb-sort-select').addEventListener('change', function() {
         sbReload({ sort: this.value });
     });
+
+    // ---- Expandir card ----
+    // Dados dos cards para o modal de visualização
+    var sbCardsData = <?= json_encode(array_map(function($s) { return [
+        'id'        => (int)$s['suggestionid'],
+        'title'     => $s['title'],
+        'desc'      => $s['description'] ?? '',
+        'author'    => trim(($s['name'] ?? '') . ' ' . ($s['surname'] ?? '')) ?: ($s['username'] ?? ''),
+        'date'      => date('d/m/Y', strtotime($s['created_at'])),
+        'tags'      => $s['tags'] ?? [],
+        'votes'     => (int)$s['vote_count'],
+    ]; }, $suggestions)) ?>;
+
+    window.sbViewCard = function(sid, e) {
+        if (e.target.closest('.sb-vote-btn, .sb-btn-delete, .sb-card-footer, a, button')) return;
+
+        var card = sbCardsData.find(function(c) { return c.id === sid; });
+        if (!card) return;
+
+        document.getElementById('sb-view-title').textContent = card.title;
+        document.getElementById('sb-view-desc').textContent = card.desc || 'Sem descrição.';
+        document.getElementById('sb-view-author').textContent = card.author;
+        document.getElementById('sb-view-date').textContent = card.date;
+        document.getElementById('sb-view-votes').textContent = document.getElementById('sb-vc-' + sid) ? document.getElementById('sb-vc-' + sid).textContent : card.votes;
+
+        var initials = card.author.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('').toUpperCase();
+        document.getElementById('sb-view-avatar').textContent = initials || '?';
+
+        var tagsEl = document.getElementById('sb-view-tags');
+        tagsEl.innerHTML = '';
+        (card.tags || []).forEach(function(t) {
+            var span = document.createElement('span');
+            span.className = 'sb-card-tag';
+            span.textContent = '#' + t;
+            span.onclick = function() { sbCloseViewModal(); sbFilterTag(t); };
+            tagsEl.appendChild(span);
+        });
+
+        document.getElementById('sb-view-modal').classList.add('open');
+    };
+
+    window.sbCloseViewModal = function() {
+        document.getElementById('sb-view-modal').classList.remove('open');
+    };
+
+    document.getElementById('sb-view-modal').addEventListener('click', function(e) {
+        if (e.target === this) sbCloseViewModal();
+    });
+
 
     // ---- Enter no title do modal ----
     document.getElementById('sb-title').addEventListener('keydown', function(e) {
