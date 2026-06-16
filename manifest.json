@@ -4,7 +4,7 @@
     "name": "Suggestion Box",
     "version": "1.0.0",
     "namespace": "SuggestionBox",
-    "author": "Rafael Leão — NOC Claro Empresas / Embratel",
+    "author": "Rafael M. A. Leão Ereno - MALE"
     "description": "Caixa de Sugestões: usuários podem criar e votar em ideias para desenvolvimento.",
     "url": "https://github.com/leaoereno/module-zbx-suggestion-box",
     "icon": "",
