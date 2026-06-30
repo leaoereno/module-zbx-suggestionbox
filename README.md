@@ -2,7 +2,7 @@
 
 Módulo de Caixa de Sugestões para Zabbix 7.0 LTS. Permite que usuários logados criem e votem em ideias/sugestões de melhorias, facilitando a priorização do que será desenvolvido.
 
-**Autor:** Rafael Leão — NOC Claro Empresas / Embratel  
+**Autor:** Rafael Leão
 **Versão:** 1.0.0  
 **Repositório:** https://github.com/leaoereno/module-zbx-suggestion-box
 
